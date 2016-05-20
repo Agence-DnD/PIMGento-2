@@ -185,11 +185,15 @@ class Import extends Factory
 
                 $attributes = explode(',', $additional);
 
-                $stores = $this->_helperConfig->getStores('lang');
+                $channels = array_keys($this->_helperConfig->getStores('channel_code'));
+                $locales = array_keys($this->_helperConfig->getStores('lang'));
 
                 foreach ($attributes as $attribute) {
-                    foreach ($stores as $local => $affected) {
-                        $attributes[] = trim($attribute) . '-' . $local;
+                    foreach ($channels as $code) {
+                        $attributes[] = trim($attribute) . '-' . $code;
+                    }
+                    foreach ($locales as $code) {
+                        $attributes[] = trim($attribute) . '-' . $code;
                     }
                 }
 
