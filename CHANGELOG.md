@@ -15,26 +15,31 @@
   * fix: Init stock infos for configurable product
   * fix: Do not create stock infos per website, but only on the main website.
   * fix: Bad translation
-  
+  * fix: Bad default price type
+
 ### [1.0.6] - 2016-04-29
 
-  * @todo to complete
+  * add: Import directory configuration
+  * add: French translation
+  * add: Admin ACL
+  * fix: Sample data
 
 ### [1.0.5] - 2016-04-22
 
-  * @todo to complete
-  
+  * add: Command line execution
+
 ### [1.0.4] - 2016-04-12
 
-  * @todo to complete
+  * fix: Column duplication improvement
 
 ### [1.0.3] - 2016-04-12
 
-  * @todo to complete
+  * fix: Allow multiple columns matching
+  * fix: Match localizable and scopable columns
 
 ### [1.0.2] - 2016-04-08
 
-  * @todo to complete
+  * add: LOAD DATA INFILE request configuration. You van add LOCAL option to request
 
 ### [1.0.1] - 2016-04-06
 
