@@ -69,14 +69,13 @@ class Import extends Factory
      */
     public function createTable()
     {
-        $file = $this->getUploadDir() . '/' . $this->getFile();
+        $file = $this->getFileFullPath();
 
         if (!is_file($file)) {
             $this->setContinue(false);
             $this->setStatus(false);
-            $this->setMessage(
-                __('File %1 not found in %2', $this->getFile(), $this->getUploadDir())
-            );
+            $this->setMessage($this->getFileNotFoundErrorMessage());
+
         } else {
             $this->_entities->createTmpTableFromFile($file, $this->getCode(), array('sku'));
         }
@@ -87,7 +86,7 @@ class Import extends Factory
      */
     public function insertData()
     {
-        $file = $this->getUploadDir() . '/' . $this->getFile();
+        $file = $this->getFileFullPath();
 
         $count = $this->_entities->insertDataFromFile($file, $this->getCode());
 

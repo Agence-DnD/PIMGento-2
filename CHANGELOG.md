@@ -1,6 +1,7 @@
 ### [not released]
   
   * add some documentations (changelog, license, contributing)
+  * add ability to use full path filename on setFile method, in order to import files that are not in the upload folder.
 
 ### [1.0.8] - 2016-05-20
 
