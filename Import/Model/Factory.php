@@ -527,4 +527,35 @@ class Factory extends DataObject implements FactoryInterface
         return $this->_moduleManager->isEnabled($module);
     }
 
+    /**
+     * Check if file is external
+     *
+     * @return bool
+     */
+    protected function isExternalFile()
+    {
+        return substr($this->getFile(), 0, 1) == '/';
+    }
+
+    /**
+     * Return file full path handling potential external files
+     *
+     * @return string
+     */
+    protected function getFileFullPath()
+    {
+        return $this->isExternalFile() ? $this->getFile() : $this->getUploadDir() . '/' . $this->getFile();
+    }
+
+    /**
+     * Return file not found error message handling potential external files
+     *
+     * @return string
+     */
+    protected function getFileNotFoundErrorMessage()
+    {
+        return $this->isExternalFile() ?
+            __('File %1 not found', $this->getFile()) :
+            __('File %1 not found in %2', $this->getFile(), $this->getUploadDir());
+    }
 }
