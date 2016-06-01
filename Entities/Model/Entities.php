@@ -92,6 +92,30 @@ class Entities extends AbstractModel implements EntitiesInterface, IdentityInter
      */
     public function insertDataFromFile($file, $tableSuffix)
     {
+        $method =  $this->_configHelper->getInsertionMethod();
+        switch ($method) {
+            case \Pimgento\Entities\Helper\Config::INSERTION_METHOD_BY_ROWS:
+                $result = $this->insertWithByRowsMethod($file, $tableSuffix);
+                break;
+
+            case \Pimgento\Entities\Helper\Config::INSERTION_METHOD_DATA_IN_FILE:
+            default:
+                $result = $this->insertWithDataInFileMethod($file, $tableSuffix);
+                break;
+        }
+
+        return $result;
+    }
+
+    /**
+     * Insert data from file into temporary table
+     *
+     * @param string $file
+     * @param string $tableSuffix
+     * @return int
+     */
+    protected function insertWithDataInFileMethod($file, $tableSuffix)
+    {
         $local = $this->_configHelper->getLoadDataLocal() ? true : false;
 
         return $this->_getResource()->loadDataInfile(
@@ -100,6 +124,23 @@ class Entities extends AbstractModel implements EntitiesInterface, IdentityInter
             $this->_configHelper->getCsvConfig()['fields_terminated'],
             $this->_configHelper->getCsvConfig()['lines_terminated'],
             $local
+        );
+    }
+
+    /**
+     * Insert data by rows
+     *
+     * @param string $file
+     * @param string $tableSuffix
+     * @return int
+     */
+    protected function insertWithByRowsMethod($file, $tableSuffix)
+    {
+        return $this->_getResource()->insertByRows(
+            $file,
+            $this->getTableName($tableSuffix),
+            $this->_configHelper->getCsvConfig()['fields_terminated'],
+            $this->_configHelper->getCsvConfig()['fields_enclosure']
         );
     }
 

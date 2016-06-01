@@ -11,6 +11,10 @@
                 <field id="fields_enclosure" translate="label" type="text" sortOrder="50" showInDefault="1" showInWebsite="0" showInStore="0">
                     <label>CSV: enclosure</label>
                 </field>
+                <field id="data_insertion_method" translate="label" type="select" sortOrder="55" showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>Data insertion method</label>
+                    <source_model>Pimgento\Entities\Model\Source\InsertionMethod</source_model>
+                </field>
                 <field id="load_data_local" translate="label" type="select" sortOrder="60" showInDefault="1" showInWebsite="0" showInStore="0">
                     <label>Load Data Local</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
