@@ -1,6 +1,7 @@
 ### [not released]
   
   * add some documentations (changelog, license, contributing)
+  * add new config option Pimgento\General\data_insertion_method with 2 values : "Load Data Infile" and "By 1000 rows"  
 
 ### [1.0.8] - 2016-05-20
 

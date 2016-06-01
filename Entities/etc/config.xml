@@ -6,6 +6,7 @@
                 <lines_terminated>\n</lines_terminated>
                 <fields_terminated>;</fields_terminated>
                 <fields_enclosure>"</fields_enclosure>
+                <data_insertion_method>data_in_file</data_insertion_method>
                 <load_data_local>0</load_data_local>
             </general>
         </pimgento>

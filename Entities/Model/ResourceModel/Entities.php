@@ -197,6 +197,79 @@ class Entities extends AbstractDb
     }
 
     /**
+     * Execute insert by rows
+     *
+     * @param string $file
+     * @param string $tableName
+     * @param string $fieldsTerminated
+     * @param string $fieldsEnclosure
+     *
+     * @return int
+     *
+     * @throws \Exception
+     */
+    public function insertByRows($file, $tableName, $fieldsTerminated = ';', $fieldsEnclosure = '"')
+    {
+        if (!file_exists($file)) {
+            throw new \Exception(__("%s does not exist.", $file));
+        }
+
+        if (!is_readable($file)) {
+            throw new \Exception(__("Unable to read %s.", $file));
+        }
+
+        $fileHandle = fopen($file, "r");
+        if ($fileHandle === false) {
+            throw new \Exception(__("Unable to open %s.", $file));
+        }
+
+        $fileSize = filesize($file);
+        if ($fileSize == 0) {
+            fclose($fileHandle);
+            throw new \Exception(__("Unable to open %s.", $file));
+        }
+
+        $columnNames  = [];
+        $columnValues = [];
+        $rowCount = 0;
+
+        $connection = $this->getConnection();
+
+        while (($csvLine = fgetcsv($fileHandle, null, $fieldsTerminated, $fieldsEnclosure)) !== false) {
+            $rowCount++;
+
+            if ($rowCount == 1) {
+                // Get column names as first row - assumes first row always has this data
+                foreach ($csvLine as $key => $value) {
+                    array_push($columnNames, $value);
+                }
+                continue;
+            }
+
+            // Build column => value map for insert
+            foreach ($csvLine as $key => $value) {
+                $columnValues[$rowCount][$columnNames[$key]] = $value;
+            }
+
+            if ($rowCount % 1000 == 0) {
+                // Insert our row into the tmp table
+                $connection->insertMultiple($tableName, $columnValues);
+                $columnValues = array();
+            }
+        }
+
+        if (count($columnValues) > 0) {
+            $connection->insertMultiple($tableName, $columnValues);
+        }
+
+        fclose($fileHandle);
+
+        return $connection->fetchOne(
+            $connection->select()->from($tableName, array(new Expr('COUNT(*)')))
+        );
+    }
+
+    /**
      * Match Magento Id with code
      *
      * @param string $tableName
