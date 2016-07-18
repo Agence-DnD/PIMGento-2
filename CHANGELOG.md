@@ -1,6 +1,7 @@
 ### [Not Released]
 
   * fix: refactoring on attribute import
+  * add: new event `pimgento_attribute_get_specific_columns_add_after` that allows to add other columns for attribute definition
 
 ### [100.1.0] - 2016-07-04
 

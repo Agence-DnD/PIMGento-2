@@ -175,4 +175,31 @@ class Type extends AbstractHelper
         return $types;
     }
 
+    /**
+     * Get the specific columns that depends on the attribute type
+     *
+     * @return array
+     */
+    public function getSpecificColumns()
+    {
+        $columns = array(
+            'backend_type'   => 'VARCHAR(255) NULL',
+            'frontend_input' => 'VARCHAR(255) NULL',
+            'backend_model'  => 'VARCHAR(255) NULL',
+            'source_model'   => 'VARCHAR(255) NULL',
+            'frontend_model' => 'VARCHAR(255) NULL',
+        );
+
+        $response = new DataObject();
+        $response->setColumns($columns);
+
+        $this->_eventManager->dispatch(
+            'pimgento_attribute_get_specific_columns_add_after',
+            ['response' => $response]
+        );
+
+        $columns = $response->getColumns();
+
+        return $columns;
+    }
 }
