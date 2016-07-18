@@ -16,6 +16,11 @@ use \Exception;
 
 class Import extends Factory
 {
+    /**
+     * Product Entity Type Id
+     * @var int
+     */
+    protected $_entityTypeId;
 
     /**
      * @var Entities
@@ -68,6 +73,21 @@ class Import extends Factory
     }
 
     /**
+     * Get the product entity type id
+     *
+     * @return int
+     */
+    protected function getEntityTypeId()
+    {
+        if (is_null($this->_entityTypeId)) {
+            //@todo get it from the database
+            $this->_entityTypeId = 4;
+        }
+
+        return $this->_entityTypeId;
+    }
+
+    /**
      * Create temporary table
      */
     public function createTable()
@@ -113,7 +133,7 @@ class Import extends Factory
                     'entity_id'  => 'attribute_id',
                 )
             )
-            ->where('entity_type_id = ?', 4);
+            ->where('entity_type_id = ?', $this->getEntityTypeId());
 
         $connection->query(
             $connection->insertFromSelect(
@@ -157,15 +177,7 @@ class Import extends Factory
         foreach ($data as $id => $attribute) {
             $type = $this->_helperType->getType($attribute['type']);
 
-            $values = array(
-                'backend_type'   => $type['backend_type'],
-                'frontend_input' => $type['frontend_input'],
-                'backend_model'  => $type['backend_model'],
-                'source_model'   => $type['source_model'],
-                'frontend_model' => $type['frontend_model'],
-            );
-
-            $connection->update($tmpTable, $values, array('_entity_id = ?' => $id));
+            $connection->update($tmpTable, $type, array('_entity_id = ?' => $id));
         }
     }
 
@@ -225,7 +237,7 @@ class Import extends Factory
             /* Insert base data (ignore if already exists) */
             $values = array(
                 'attribute_id'   => $row['_entity_id'],
-                'entity_type_id' => 4,
+                'entity_type_id' => $this->getEntityTypeId(),
                 'attribute_code' => $row['code'],
             );
             $connection->insertOnDuplicate(
@@ -260,7 +272,7 @@ class Import extends Factory
             }
 
             $data = array(
-                'entity_type_id' => 4,
+                'entity_type_id' => $this->getEntityTypeId(),
                 'attribute_code' => $row['code'],
                 'frontend_label' => $frontendLabel,
                 'is_global'      => $global,
@@ -268,51 +280,57 @@ class Import extends Factory
 
             if ($row['_is_new'] == 1) {
                 $data = array(
-                    'entity_type_id' => 4,
-                    'attribute_code' => $row['code'],
-                    'backend_model' => $row['backend_model'],
-                    'backend_type' => $row['backend_type'],
-                    'backend_table' => null,
-                    'frontend_model' => $row['frontend_model'],
-                    'frontend_input' => $row['frontend_input'],
-                    'frontend_label' => $frontendLabel,
-                    'frontend_class' => null,
-                    'source_model' => $row['source_model'],
-                    'is_required' => 0,
-                    'is_user_defined' => 1,
-                    'default_value' => null,
-                    'is_unique' => $row['unique'],
-                    'note' => null,
-                    'is_global' => $global,
-                    'is_visible' => 1,
-                    'is_system' => 1,
-                    'input_filter' => null,
-                    'multiline_count' => 0,
-                    'validate_rules' => null,
-                    'data_model' => null,
-                    'sort_order' => 0,
-                    'is_used_in_grid' => 0,
-                    'is_visible_in_grid' => 0,
-                    'is_filterable_in_grid' => 0,
-                    'is_searchable_in_grid' => 0,
-                    'frontend_input_renderer' => null,
-                    'is_searchable' => 0,
-                    'is_filterable' => 0,
-                    'is_comparable' => 0,
-                    'is_visible_on_front' => 0,
-                    'is_wysiwyg_enabled' => 0,
-                    'is_html_allowed_on_front' => 0,
+                    'entity_type_id'            => $this->getEntityTypeId(),
+                    'attribute_code'            => $row['code'],
+                    'backend_model'             => $row['backend_model'],
+                    'backend_type'              => $row['backend_type'],
+                    'backend_table'             => null,
+                    'frontend_model'            => $row['frontend_model'],
+                    'frontend_input'            => $row['frontend_input'],
+                    'frontend_label'            => $frontendLabel,
+                    'frontend_class'            => null,
+                    'source_model'              => $row['source_model'],
+                    'is_required'               => 0,
+                    'is_user_defined'           => 1,
+                    'default_value'             => null,
+                    'is_unique'                 => $row['unique'],
+                    'note'                      => null,
+                    'is_global'                 => $global,
+                    'is_visible'                => 1,
+                    'is_system'                 => 1,
+                    'input_filter'              => null,
+                    'multiline_count'           => 0,
+                    'validate_rules'            => null,
+                    'data_model'                => null,
+                    'sort_order'                => 0,
+                    'is_used_in_grid'           => 0,
+                    'is_visible_in_grid'        => 0,
+                    'is_filterable_in_grid'     => 0,
+                    'is_searchable_in_grid'     => 0,
+                    'frontend_input_renderer'   => null,
+                    'is_searchable'             => 0,
+                    'is_filterable'             => 0,
+                    'is_comparable'             => 0,
+                    'is_visible_on_front'       => 0,
+                    'is_wysiwyg_enabled'        => 0,
+                    'is_html_allowed_on_front'  => 0,
                     'is_visible_in_advanced_search' => 0,
-                    'is_filterable_in_search' => 0,
-                    'used_in_product_listing' => 0,
-                    'used_for_sort_by' => 0,
-                    'apply_to' => null,
-                    'position' => 0,
-                    'is_used_for_promo_rules' => 0,
+                    'is_filterable_in_search'   => 0,
+                    'used_in_product_listing'   => 0,
+                    'used_for_sort_by'          => 0,
+                    'apply_to'                  => null,
+                    'position'                  => 0,
+                    'is_used_for_promo_rules'   => 0,
                 );
             }
 
-            $this->_eavSetup->updateAttribute(4, $row['_entity_id'], $data, null, 0);
+            $this->_eavSetup->updateAttribute(
+                $this->getEntityTypeId(),
+                $row['_entity_id'],
+                $data,
+                null,
+                0
+            );
 
             /* Add Attribute to group and family */
             if ($row['_attribute_set_id'] && $row['group']) {
@@ -320,8 +338,17 @@ class Import extends Factory
 
                 foreach ($attributeSetIds as $attributeSetId) {
                     if (is_numeric($attributeSetId)) {
-                        $this->_eavSetup->addAttributeGroup(4, $attributeSetId, ucfirst($row['group']));
-                        $this->_eavSetup->addAttributeToSet(4, $attributeSetId, ucfirst($row['group']), $row['_entity_id']);
+                        $this->_eavSetup->addAttributeGroup(
+                            $this->getEntityTypeId(),
+                            $attributeSetId,
+                            ucfirst($row['group'])
+                        );
+                        $this->_eavSetup->addAttributeToSet(
+                            $this->getEntityTypeId(),
+                            $attributeSetId,
+                            ucfirst($row['group']),
+                            $row['_entity_id']
+                        );
                     }
                 }
             }
