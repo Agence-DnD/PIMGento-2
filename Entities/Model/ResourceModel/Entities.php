@@ -248,6 +248,10 @@ class Entities extends AbstractDb
 
             // Build column => value map for insert
             foreach ($csvLine as $key => $value) {
+                if (!array_key_exists($key, $columnNames)) {
+                    throw new \Exception('The line #'.$rowCount.' has too many columns');
+                }
+
                 $columnValues[$rowCount][$columnNames[$key]] = $value;
             }
 
