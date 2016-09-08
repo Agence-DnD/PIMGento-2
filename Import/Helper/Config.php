@@ -8,6 +8,7 @@ use \Magento\Framework\App\Helper\Context;
 use \Magento\Store\Model\StoreManagerInterface;
 use \Magento\Framework\Filesystem;
 use \Magento\Store\Model\ScopeInterface;
+use \Magento\CatalogInventory\Model\Configuration as CatalogInventoryConfiguration;
 
 class Config extends AbstractHelper
 {
@@ -15,26 +16,37 @@ class Config extends AbstractHelper
     /**
      * @var \Magento\Framework\Filesystem
      */
-    protected $_fileSystem;
+    protected $fileSystem;
 
     /**
      * @var \Magento\Store\Model\StoreManagerInterface
      */
-    protected $_storeManager;
+    protected $storeManager;
 
     /**
-     * @param \Magento\Framework\App\Helper\Context $context
-     * @param \Magento\Framework\Filesystem $fileSystem
+     * @var CatalogInventoryConfiguration
+     */
+    protected $catalogInventoryConfiguration;
+
+    /**
+     * Constructor
+     *
+     * 0
+     * @param Context $context
+     * @param Filesystem $fileSystem
      * @param StoreManagerInterface $storeManager
+     * @param CatalogInventoryConfiguration $catalogInventoryConfiguration
      */
     public function __construct(
         Context $context,
         Filesystem $fileSystem,
-        StoreManagerInterface $storeManager
-    )
-    {
-        $this->_fileSystem = $fileSystem;
-        $this->_storeManager = $storeManager;
+        StoreManagerInterface $storeManager,
+        CatalogInventoryConfiguration $catalogInventoryConfiguration
+    ) {
+        $this->fileSystem = $fileSystem;
+        $this->storeManager = $storeManager;
+        $this->catalogInventoryConfiguration = $catalogInventoryConfiguration;
+
         parent::__construct($context);
     }
 
@@ -46,7 +58,7 @@ class Config extends AbstractHelper
     public function getUploadDir()
     {
         /** @var $varDirectory \Magento\Framework\Filesystem\Directory\Read $mediaDirectory */
-        $varDirectory = $this->_fileSystem->getDirectoryRead(DirectoryList::VAR_DIR);
+        $varDirectory = $this->fileSystem->getDirectoryRead(DirectoryList::VAR_DIR);
 
         return $varDirectory->getAbsolutePath(
             $this->scopeConfig->getValue('pimgento/general/import_directory')
@@ -61,7 +73,7 @@ class Config extends AbstractHelper
      */
     public function getStores($arrayKey = 'store_id')
     {
-        $stores = $this->_storeManager->getStores(true);
+        $stores = $this->storeManager->getStores(true);
 
         $data = array();
 
@@ -81,8 +93,7 @@ class Config extends AbstractHelper
         }
 
         foreach ($stores as $store) {
-
-            $website = $this->_storeManager->getWebsite($store->getWebsiteId());
+            $website = $this->storeManager->getWebsite($store->getWebsiteId());
 
             $channel = $website->getCode();
 
@@ -113,19 +124,22 @@ class Config extends AbstractHelper
                         break;
                     case 'lang':
                         $combine[] = $this->scopeConfig->getValue(
-                            'general/locale/code', ScopeInterface::SCOPE_STORE, $store->getId()
+                            'general/locale/code',
+                            ScopeInterface::SCOPE_STORE,
+                            $store->getId()
                         );
                         break;
                     case 'currency':
                         $combine[] = $this->scopeConfig->getValue(
-                            'currency/options/default', ScopeInterface::SCOPE_STORE, $store->getId()
+                            'currency/options/default',
+                            ScopeInterface::SCOPE_STORE,
+                            $store->getId()
                         );
                         break;
                     default:
                         $combine[] = $store->getId();
                         break;
                 }
-
             }
 
             $key = join('-', $combine);
@@ -141,10 +155,14 @@ class Config extends AbstractHelper
                 'website_code' => $website->getCode(),
                 'channel_code' => $channel,
                 'lang'         => $this->scopeConfig->getValue(
-                    'general/locale/code', ScopeInterface::SCOPE_STORE, $store->getId()
+                    'general/locale/code',
+                    ScopeInterface::SCOPE_STORE,
+                    $store->getId()
                 ),
                 'currency'     => $this->scopeConfig->getValue(
-                    'currency/options/default', ScopeInterface::SCOPE_STORE, $store->getId()
+                    'currency/options/default',
+                    ScopeInterface::SCOPE_STORE,
+                    $store->getId()
                 ),
             );
         }
@@ -159,7 +177,16 @@ class Config extends AbstractHelper
      */
     public function getDefaultWebsiteId()
     {
-        return $this->_storeManager->getStore()->getWebsiteId();
+        return $this->storeManager->getStore()->getWebsiteId();
     }
 
+    /**
+     * Retrieve default scope id used by the catalog inventory module when saving an entity
+     *
+     * @return int
+     */
+    public function getDefaultScopeId()
+    {
+        return $this->catalogInventoryConfiguration->getDefaultScopeId();
+    }
 }

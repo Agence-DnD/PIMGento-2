@@ -727,7 +727,7 @@ class Import extends Factory
         $connection = $this->_entities->getResource()->getConnection();
         $tmpTable = $this->_entities->getTableName($this->getCode());
 
-        $websiteId = $this->_helperConfig->getDefaultWebsiteId();
+        $websiteId = $this->_helperConfig->getDefaultScopeId();
 
         $values = array(
             'product_id' => '_entity_id',
@@ -746,7 +746,7 @@ class Import extends Factory
                 $select,
                 $connection->getTableName('cataloginventory_stock_item'),
                 array_keys($values),
-                2
+                AdapterInterface::INSERT_IGNORE
             )
         );
     }
