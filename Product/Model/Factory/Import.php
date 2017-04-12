@@ -14,6 +14,7 @@ use \Magento\Catalog\Model\Product;
 use \Magento\Catalog\Model\Product\Link as Link;
 use \Magento\Framework\Event\ManagerInterface;
 use \Magento\Framework\App\Cache\TypeListInterface;
+use \Magento\Framework\App\State;
 use \Magento\Eav\Model\Entity\Attribute\SetFactory;
 use \Magento\Framework\Module\Manager as moduleManager;
 use \Magento\Framework\App\Config\ScopeConfigInterface as scopeConfig;
@@ -41,7 +42,7 @@ class Import extends Factory
     /**
      * @var \Pimgento\Product\Helper\Config
      */
-    protected $_productHelper; 
+    protected $_productHelper;
 
     /**
      * @var \Pimgento\Product\Helper\Media
@@ -106,6 +107,7 @@ class Import extends Factory
         Related $related,
         Media $media,
         Product $product,
+        State $appState,
         array $data = []
     ) {
         parent::__construct($helperConfig, $eventManager, $moduleManager, $scopeConfig, $data);
@@ -119,6 +121,8 @@ class Import extends Factory
         $this->_related = $related;
         $this->_media = $media;
         $this->_product = $product;
+        
+        $appState->setAreaCode('admin');
     }
 
     /**
