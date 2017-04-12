@@ -91,6 +91,7 @@ class Import extends Factory
      * @param Related                                            $related
      * @param Media                                              $media
      * @param Product                                            $product
+     * @param State                                              $appState
      * @param array                                              $data
      */
     public function __construct(
