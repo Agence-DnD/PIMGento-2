@@ -41,7 +41,7 @@ class Import extends Factory
     /**
      * @var \Pimgento\Product\Helper\Config
      */
-    protected $_productHelper; 
+    protected $_productHelper;
 
     /**
      * @var \Pimgento\Product\Helper\Media
@@ -631,6 +631,10 @@ class Import extends Factory
                     ->where('_children IS NOT NULL')
             );
 
+            $stepSize = 500;
+            $valuesLabels = [];
+            $valuesRelations = [];
+            $valuesSuperLink = [];
             while (($row = $query->fetch())) {
                 $attributes = explode(',', $row['_axis']);
 
@@ -672,14 +676,11 @@ class Import extends Factory
                     );
 
                     foreach ($stores as $storeId => $affected) {
-                        $values = array(
+                        $valuesLabels[] = array(
                             'product_super_attribute_id' => $superAttributeId,
                             'store_id' => $storeId,
                             'use_default' => 0,
                             'value' => ''
-                        );
-                        $connection->insertOnDuplicate(
-                            $connection->getTableName('catalog_product_super_attribute_label'), $values, array()
                         );
                     }
 
@@ -701,25 +702,63 @@ class Import extends Factory
 
                         if ($childId) {
                             /* catalog_product_relation */
-                            $values = array(
+                            $valuesRelations[] = array(
                                 'parent_id' => $row['_entity_id'],
                                 'child_id' => $childId,
                             );
-                            $connection->insertOnDuplicate(
-                                $connection->getTableName('catalog_product_relation'), $values, array()
-                            );
 
                             /* catalog_product_super_link */
-                            $values = array(
+                            $valuesSuperLink[] = array(
                                 'product_id' => $childId,
                                 'parent_id' => $row['_entity_id'],
                             );
-                            $connection->insertOnDuplicate(
-                                $connection->getTableName('catalog_product_super_link'), $values, array()
-                            );
                         }
                     }
+
+
+                    if (count($valuesSuperLink)  > $stepSize) {
+                        $connection->insertOnDuplicate(
+                            $connection->getTableName('catalog_product_super_attribute_label'),
+                            $valuesLabels,
+                            array()
+                        );
+
+                        $connection->insertOnDuplicate(
+                            $connection->getTableName('catalog_product_relation'),
+                            $valuesRelations,
+                            array()
+                        );
+                        $connection->insertOnDuplicate(
+                            $connection->getTableName('catalog_product_super_link'),
+                            $valuesSuperLink,
+                            array()
+                        );
+
+
+                        $valuesLabels = [];
+                        $valuesRelations = [];
+                        $valuesSuperLink = [];
+                    }
                 }
+            }
+
+            if (count($valuesSuperLink)  > 0) {
+                $connection->insertOnDuplicate(
+                    $connection->getTableName('catalog_product_super_attribute_label'),
+                    $valuesLabels,
+                    array()
+                );
+
+                $connection->insertOnDuplicate(
+                    $connection->getTableName('catalog_product_relation'),
+                    $valuesRelations,
+                    array()
+                );
+                $connection->insertOnDuplicate(
+                    $connection->getTableName('catalog_product_super_link'),
+                    $valuesSuperLink,
+                    array()
+                );
             }
         }
     }

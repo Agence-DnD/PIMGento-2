@@ -148,15 +148,19 @@ class Import extends Factory
 
         $columns = array_keys($connection->describeTable($tmpTable));
 
+        $values = [];
+        $i = 0;
+        $keys = [];
         while (($row = $variant->fetch())) {
 
-            $values = array();
+
+            $values[$i] = [];
 
             foreach ($columns as $column) {
 
                 if ($connection->tableColumnExists($variantTable, $this->_columnName($column))) {
 
-                    $values[$this->_columnName($column)] = $row[$column];
+                    $values[$i][$this->_columnName($column)] = $row[$column];
 
                     if ($column == 'axis') {
                         $axisAttributes = explode(',', $row['axis']);
@@ -169,16 +173,26 @@ class Import extends Factory
                             }
                         }
 
-                        $values[$column] = join(',', $axis);
+                        $values[$i][$column] = join(',', $axis);
                     }
 
+                    $keys = array_keys($values[$i]);
                 }
-
             }
+            $i++;
 
-            $connection->insertOnDuplicate(
-                $variantTable, $values, array_keys($values)
-            );
+            /**
+             * Write 500 values at a time.
+             */
+            if (count($values) > 500) {
+                $connection->insertOnDuplicate($variantTable, $values, $keys);
+                $values = [];
+                $i = 0;
+            }
+        }
+
+        if (count($values) > 0) {
+            $connection->insertOnDuplicate($variantTable, $values, $keys);
         }
     }
 
