@@ -835,8 +835,7 @@ class Import extends Factory
                     'FIND_IN_SET(`c`.`code`, `p`.`categories`) AND `c`.`import` = "category"',
                     array(
                         'category_id' => 'c.entity_id',
-                        'product_id'  => 'p._entity_id',
-                        'position'    => new Expr(1)
+                        'product_id'  => 'p._entity_id'
                     )
                 )
                 ->joinInner(
@@ -849,7 +848,7 @@ class Import extends Factory
                 $connection->insertFromSelect(
                     $select,
                     $connection->getTableName('catalog_category_product'),
-                    array('category_id', 'product_id', 'position'),
+                    array('category_id', 'product_id'),
                     1
                 )
             );
