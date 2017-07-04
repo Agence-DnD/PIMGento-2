@@ -592,6 +592,14 @@ class Import extends Factory
                         if (!isset($values[$store['store_id']])) {
                             $values[$store['store_id']] = array();
                         }
+                        // Fix issue with multiple languages and rewrite of language for all the store views
+                        if(count($affected) > 1 && strpos($columnPrefix, $store['lang']) === false){
+                            continue;
+                        }
+                        // Check if value is already set and continue when value exists
+                        if (isset($values[$store['store_id']][$columnPrefix])) {
+                            continue;
+                        }
                         $values[$store['store_id']][$columnPrefix] = $column;
                     }
                 }
