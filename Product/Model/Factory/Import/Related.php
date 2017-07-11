@@ -189,6 +189,9 @@ class Related extends Factory
                     'link_type_id'      => new Expr($type['type_id'])
                 ]
             );
+
+	    $this->deleteRemovedRelations($select, $type['type_id']);
+
         $query = $connection->insertFromSelect(
             $select,
             $connection->getTableName('catalog_product_link'),
@@ -232,4 +235,73 @@ class Related extends Factory
 
         return $ids;
     }
+
+	/**
+	 * Remove previous relations that are not existing anymore in import file
+	 *
+	 * @param string $tmpTableSelect - Select statement to retrieve new data from previously created tmp table
+	 * @param int $typeId
+	 */
+	private function deleteRemovedRelations($tmpTableSelect, $typeId)
+	{
+		// No new entities - nothing to do
+		$importIds = $this->getImportEntities();
+		if (empty($importIds)) {
+			return;
+		}
+
+		$connection = $this->_entities->getResource()->getConnection();
+		$linkTable = $connection->getTableName('catalog_product_link');
+
+		// Only delete removed relations for import products
+		$select = $connection->select()
+			->from($linkTable)
+			->where("link_type_id = $typeId")
+			->where(sprintf('product_id IN (%s)', implode(',', $importIds)));
+
+		$oldRelations = $connection->query($select)->fetchAll();
+		$newRelations = $connection->query($tmpTableSelect)->fetchAll();
+		$deleted = [];
+
+		foreach ($oldRelations as $old) {
+
+			$found = false;
+			foreach ($newRelations as $new) {
+
+				if ($new['product_id'] == $old['product_id']
+					&& $new['linked_product_id'] == $old['linked_product_id']
+					&& $new['link_type_id'] == $old['link_type_id']) {
+
+					$found = true;
+				}
+			}
+
+			if (!$found) {
+				$deleted[] = $old['link_id'];
+			}
+		}
+
+		if (count($deleted) > 0) {
+			$sql = sprintf('DELETE FROM `%s` WHERE link_id IN (%s)', $linkTable, implode(',', $deleted));
+			$connection->query($sql);
+		}
+	}
+
+	/**
+	 * Fetch ids of entities to be imported
+	 *
+	 * @return int[]
+	 */
+	private function getImportEntities()
+	{
+		$connection = $this->_entities->getResource()->getConnection();
+		$importFileTable = $this->_entities->getTableName($this->getCode());
+		$entityTable = $connection->getTableName('catalog_product_entity');
+
+		$select = $connection->select()
+			->from($entityTable, ['entity_id'])
+			->join($importFileTable, "$importFileTable.sku = $entityTable.sku", []);
+
+		return $connection->query($select)->fetchAll(\Zend_Db::FETCH_COLUMN);
+	}
 }
