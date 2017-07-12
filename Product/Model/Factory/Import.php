@@ -173,8 +173,6 @@ class Import extends Factory
             // Use seo url key as for rewrite url if specified - use sku otherwise
 	        $langStores = $this->_helperConfig->getStores(array('lang'));
 
-	        print_r($langStores);
-
 	        $seoField = '';
 	        foreach ($langStores as $suffix => $store) {
 		        if ($connection->tableColumnExists($tmpTable, 'seo_url_key-' . $suffix)) {
