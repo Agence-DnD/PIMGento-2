@@ -169,7 +169,25 @@ class Import extends Factory
 
         if (!$connection->tableColumnExists($tmpTable, 'url_key')) {
             $connection->addColumn($tmpTable, 'url_key', 'varchar(255) NOT NULL DEFAULT ""');
-            $connection->update($tmpTable, array('url_key' => new Expr('LOWER(`sku`)')));
+
+            // Use seo url key as for rewrite url if specified - use sku otherwise
+	        $langStores = $this->_helperConfig->getStores(array('lang'));
+
+	        print_r($langStores);
+
+	        $seoField = '';
+	        foreach ($langStores as $suffix => $store) {
+		        if ($connection->tableColumnExists($tmpTable, 'seo_url_key-' . $suffix)) {
+			        $seoField = 'seo_url_key-' . $suffix;
+			        break;
+		        }
+	        }
+
+	        if (empty($seoField)) {
+		        $connection->update($tmpTable, array('url_key' => new Expr('LOWER(`sku`)')));
+	        } else {
+		        $connection->update($tmpTable, array('url_key' => new Expr("IF(LENGTH(`$seoField`) > 0, `$seoField`, LOWER(`sku`))")));
+	        }
         }
 
         if ($connection->tableColumnExists($tmpTable, 'enabled')) {
@@ -929,7 +947,7 @@ class Import extends Factory
                         );
                     }
                 }
-                
+
                 foreach ($affected as $store) {
 
                     if ($store['store_id'] == 0) {
