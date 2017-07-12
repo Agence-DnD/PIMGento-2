@@ -586,16 +586,13 @@ class Import extends Factory
             $columnPrefix = explode('-', $column);
             $columnPrefix = reset($columnPrefix);
 
-            foreach ($stores as $suffix => $affected) {
-                if (preg_match('/^' . $columnPrefix . '-' . $suffix . '$/', $column)) {
-                    foreach ($affected as $store) {
-                        if (!isset($values[$store['store_id']])) {
-                            $values[$store['store_id']] = array();
-                        }
-                        $values[$store['store_id']][$columnPrefix] = $column;
-                    }
-                }
-            }
+	        foreach ($stores as $suffix => $affected) {
+		        if (preg_match('/^' . $columnPrefix . '-' . $suffix . '$/', $column)) {
+			        $this->setAffectedStoreColumn($affected, $values, $column, $columnPrefix);
+		        } else {
+			        $this->setAffectedCurrencyStoreColumn($suffix, $affected, $values, $column, $columnPrefix);
+		        }
+	        }
 
             if (!isset($values[0][$columnPrefix])) {
                 $values[0][$columnPrefix] = $column;
@@ -608,6 +605,47 @@ class Import extends Factory
             );
         }
     }
+
+	/**
+	 * Add value entry for "normal" columns
+	 *
+	 * @param array $affected
+	 * @param array $values
+	 * @param string $column
+	 * @param string $columnPrefix
+	 */
+	private function setAffectedStoreColumn($affected, &$values, $column, $columnPrefix)
+	{
+		foreach ($affected as $store) {
+			if (!isset($values[$store['store_id']])) {
+				$values[$store['store_id']] = array();
+			}
+			$values[$store['store_id']][$columnPrefix] = $column;
+		}
+	}
+
+	/**
+	 * Add value entry for currency columns
+	 *
+	 * @param string $suffix
+	 * @param array $affected
+	 * @param array $values
+	 * @param string $column
+	 * @param string $columnPrefix
+	 */
+	private function setAffectedCurrencyStoreColumn($suffix, $affected, &$values, $column, $columnPrefix)
+	{
+		foreach ($affected as $store) {
+			if (preg_match('/^' . $columnPrefix . '-' . $suffix . '-' . $store['currency'] . '$/', $column)) {
+
+				if (!isset($values[$store['store_id']])) {
+					$values[$store['store_id']] = array();
+				}
+
+				$values[$store['store_id']][$columnPrefix] = $column;
+			}
+		}
+	}
 
     /**
      * Link configurable with children
@@ -929,7 +967,7 @@ class Import extends Factory
                         );
                     }
                 }
-                
+
                 foreach ($affected as $store) {
 
                     if ($store['store_id'] == 0) {
