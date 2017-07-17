@@ -11,6 +11,8 @@ use \Zend_Db_Expr as Expr;
 class Entities extends AbstractDb
 {
 
+    const IGNORE_VALUE='!ignore!';
+
     /**
      * @var \Magento\Framework\Stdlib\DateTime\DateTime
      */
@@ -370,15 +372,22 @@ class Entities extends AbstractDb
     public function setValues($tableName, $entityTable, $values, $entityTypeId, $storeId, $mode = 1)
     {
         $connection = $this->getConnection();
-        
+
+
+        $ignoreValue  = self::IGNORE_VALUE;
+
         foreach ($values as $code => $value) {
+
             if (($attribute = $this->getAttribute($code, $entityTypeId))) {
                 if ($attribute['backend_type'] !== 'static') {
                     $backendType = $attribute['backend_type'];
 
                     $identifier = $this->getColumnIdentifier($entityTable . '_' . $backendType);
 
-                    if ($connection->tableColumnExists($tableName, $value)) {
+
+                    $columnName = $value;
+                    $existColumn = $connection->tableColumnExists($tableName, $value);
+                    if ($existColumn) {
                         $value = new Expr('IF(`' . $value . '` <> "", `' . $value . '`, NULL)');
                     }
 
@@ -393,12 +402,18 @@ class Entities extends AbstractDb
                             )
                         );
 
+
+                    if($existColumn) {
+                        $select->where("`{$columnName}` <> ?", $ignoreValue);
+                    }
+
                     $insert = $connection->insertFromSelect(
                         $select,
                         $connection->getTableName($entityTable . '_' . $backendType),
                         array('attribute_id', 'store_id', $identifier, 'value'),
                         $mode
                     );
+
                     $connection->query($insert);
 
                     if ($attribute['backend_type'] == 'datetime') {

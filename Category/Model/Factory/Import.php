@@ -127,7 +127,9 @@ class Import extends Factory
                 $select = $connection->select()
                     ->from($tmpTable, ['entity_id' => '_entity_id', 'name' => 'label-' . $local]);
 
-                if (!$this->_scopeConfig->getValue('pimgento/category/update_url_key')) {
+                $updateUrlKeyConfig = $this->_scopeConfig->getValue('pimgento/category/update_url_key');
+
+                if (!$updateUrlKeyConfig) {
                     $select->where('_is_new = ?', 1);
                 }
 
@@ -148,8 +150,15 @@ class Import extends Factory
                         $tmpTable, ['url_key-' . $local => $finalKey], ['_entity_id = ?' => $row['entity_id']]
                     );
                 }
+
+                if (!$updateUrlKeyConfig) {
+                    $connection->update(
+                        $tmpTable, ['url_key-' . $local => \Pimgento\Entities\Model\ResourceModel\Entities::IGNORE_VALUE], ['_is_new=?' => 0]
+                    );
+                }
             }
         }
+
     }
 
     /**
@@ -167,8 +176,8 @@ class Import extends Factory
         $stores = $this->_helperConfig->getStores('lang');
 
         $values = array(
-            'level'     => 1,
-            'path'      => new Expr('CONCAT(1, "/", `_entity_id`)'),
+            'level' => 1,
+            'path' => new Expr('CONCAT(1, "/", `_entity_id`)'),
             'parent_id' => 1,
         );
         $connection->update($tmpTable, $values, 'parent = ""');
@@ -260,14 +269,14 @@ class Import extends Factory
         $table = $connection->getTableName('catalog_category_entity');
 
         $values = array(
-            'entity_id'        => '_entity_id',
+            'entity_id' => '_entity_id',
             'attribute_set_id' => new Expr(3),
-            'parent_id'        => 'parent_id',
-            'updated_at'       => new Expr('now()'),
-            'path'             => 'path',
-            'position'         => 'position',
-            'level'            => 'level',
-            'children_count'   => new Expr('0'),
+            'parent_id' => 'parent_id',
+            'updated_at' => new Expr('now()'),
+            'path' => 'path',
+            'position' => 'position',
+            'level' => 'level',
+            'children_count' => new Expr('0'),
         );
 
         if ($this->_entities->getColumnIdentifier($table) == 'row_id') {
@@ -298,10 +307,10 @@ class Import extends Factory
         $tmpTable = $this->_entities->getTableName($this->getCode());
 
         $values = array(
-            'is_active'       => new Expr(1),
+            'is_active' => new Expr(1),
             'include_in_menu' => new Expr(1),
-            'is_anchor'       => new Expr(1),
-            'display_mode'    => new Expr('"PRODUCTS"'),
+            'is_anchor' => new Expr(1),
+            'display_mode' => new Expr('"PRODUCTS"'),
         );
 
         $this->_entities->setValues(
@@ -314,7 +323,7 @@ class Import extends Factory
             if ($connection->tableColumnExists($tmpTable, 'label-' . $local)) {
                 foreach ($affected as $store) {
                     $values = array(
-                        'name'    => 'label-' . $local,
+                        'name' => 'label-' . $local,
                         'url_key' => 'url_key-' . $local,
                     );
                     $this->_entities->setValues(
@@ -351,8 +360,8 @@ class Import extends Factory
      */
     public function setUrlRewrite()
     {
-        $connection   = $this->_entities->getResource()->getConnection();
-        $tmpTable     = $this->_entities->getTableName($this->getCode());
+        $connection = $this->_entities->getResource()->getConnection();
+        $tmpTable = $this->_entities->getTableName($this->getCode());
 
         $stores = $this->_helperConfig->getStores('lang');
         $this->_urlRewriteHelper->createUrlTmpTable();
