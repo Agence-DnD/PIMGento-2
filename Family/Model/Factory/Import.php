@@ -70,7 +70,7 @@ class Import extends Factory
             $this->setStatus(false);
             $this->setMessage($this->getFileNotFoundErrorMessage());
         } else {
-            $this->_entities->createTmpTableFromFile($file, $this->getCode(), array('code', 'label'));
+            $this->_entities->createTmpTableFromFile($file, $this->getCode(), array('code', 'label', 'attributes'));
         }
     }
 
@@ -119,6 +119,33 @@ class Import extends Factory
                 $families, $resource->getTable('eav_attribute_set'), array_keys($values), 1
             )
         );
+    }
+
+    /**
+     * Insert relations between family and list of attributes
+     */
+    public function insertFamilyAttributeRelations() {
+        $resource = $this->_entities->getResource();
+        $connection = $resource->getConnection();
+        $tmpTable = $this->_entities->getTableName($this->getCode());
+        $familyAttributeRelationsTable = 'pimgento_family_attribute_relations';
+
+        $connection->delete($familyAttributeRelationsTable);
+
+        $values = array(
+            'family_entity_id'  => '_entity_id',
+            'attribute_code'    => 'attributes'
+        );
+
+        $relations = $connection->select()->from($tmpTable, $values);
+        $query = $connection->query($relations);
+
+        while($row = $query->fetch()) {
+            $attributes = explode(',', $row['attribute_code']);
+            foreach ($attributes as $attribute) {
+                $connection->insert($resource->getTable($familyAttributeRelationsTable), array('family_entity_id' => $row['family_entity_id'], 'attribute_code' => $attribute));
+            }
+        }
     }
 
     /**
