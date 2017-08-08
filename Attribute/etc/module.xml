@@ -4,6 +4,7 @@
         <sequence>
             <module name="Pimgento_Entities"/>
             <module name="Pimgento_Import"/>
+            <module name="Pimgento_Family"/>
         </sequence>
     </module>
 </config>
