@@ -10,3 +10,4 @@
 "Create or update families","Ajout ou mise à jour des familles"
 "Init families from default skeleton","Initialisation des familles à partir du squelette par défaut"
 "%1 family(ies) initialized","%1 famille(s) initialisée(s)"
+"Create or update family attribute relations","Ajout ou mise à jour des relations famille / attribut"

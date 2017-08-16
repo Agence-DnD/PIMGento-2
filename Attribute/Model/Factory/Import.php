@@ -99,7 +99,7 @@ class Import extends Factory
             $this->setStatus(false);
             $this->setMessage($this->getFileNotFoundErrorMessage());
         } else {
-            $this->_entities->createTmpTableFromFile($file, $this->getCode(), array('type', 'code', 'families'));
+            $this->_entities->createTmpTableFromFile($file, $this->getCode(), array('type', 'code'));
         }
     }
 
@@ -184,36 +184,30 @@ class Import extends Factory
         $resource = $this->_entities->getResource();
         $connection = $resource->getConnection();
         $tmpTable = $this->_entities->getTableName($this->getCode());
+        $familyAttributeRelationsTable = 'pimgento_family_attribute_relations';
 
         $connection->addColumn($tmpTable, '_attribute_set_id', 'VARCHAR(255) NULL');
 
-        $import = $connection->select()->from($tmpTable, array('_entity_id', 'families'));
-        $query  = $connection->query($import);
+        $importTmpTable = $connection->select()->from($tmpTable, array('code', '_entity_id'));
+        $queryTmpTable = $connection->query($importTmpTable);
 
-        $familyCodes = $connection->fetchPairs(
-            $connection->select()
-                ->from($resource->getTable('pimgento_entities'), array('code', 'entity_id'))
-                ->where('import = ?', 'family')
-        );
+        while ($row = $queryTmpTable->fetch()) {
+            $attributeCode = $row['code'];
 
-        while (($row = $query->fetch())) {
-            $families = explode(',', $row['families']);
-
-            $ids = array();
-
-            foreach ($families as $familyCode) {
-                if (isset($familyCodes[$familyCode])) {
-                    $ids[] = $familyCodes[$familyCode];
-                }
-            }
-
-            if (count($ids)) {
-                $connection->update(
-                    $tmpTable,
-                    array('_attribute_set_id' => join(',', $ids)),
-                    array('_entity_id = ?' => $row['_entity_id'])
+            $importRelations = $connection
+                ->select()
+                ->from($familyAttributeRelationsTable, 'family_entity_id')
+                ->where($connection
+                    ->prepareSqlCondition('attribute_code', ['like' => $attributeCode])
                 );
+            $queryRelations = $connection->query($importRelations);
+
+            $attributeIds = '';
+            while ($innerRow = $queryRelations->fetch()) {
+                $attributeIds .= $innerRow['family_entity_id'] . ',';
             }
+
+            $connection->update($tmpTable, array('_attribute_set_id' => $attributeIds), '_entity_id=' . $row['_entity_id']);
         }
     }
 

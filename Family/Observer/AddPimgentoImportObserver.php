@@ -72,6 +72,10 @@ class AddPimgentoImportObserver extends AbstractAddImportObserver implements Obs
                 'method'  => 'insertFamily',
             ),
             array(
+                'comment' => __('Create or update family attribute relations'),
+                'method'  => 'insertFamilyAttributeRelations'
+            ),
+            array(
                 'comment' => __('Init families from default skeleton'),
                 'method'  => 'initGroup',
             )
