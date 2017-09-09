@@ -145,7 +145,7 @@ class Import extends Factory
                             array(
                                 'option_id' => '_entity_id',
                                 'store_id'  => new Expr($store['store_id']),
-                                'value'     => 'label-' . $local
+                                'value'     => $store['store_id'] == 0 ? 'code' : 'label-' . $local
                             )
                         );
 
