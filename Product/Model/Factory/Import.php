@@ -412,6 +412,24 @@ class Import extends Factory
             'enabled',
         );
 
+        // Append the list of other attributes to be excluded (attributes that are not using options)
+        $productEntityTypeId = $connection->query(
+            $connection->select()
+                       ->from ($connection->getTableName('eav_entity_type'),'entity_type_id')
+                       ->where('entity_type_code = ?','catalog_product')
+        )->fetchColumn(0);
+
+        $codesToExclude = $connection->query($connection->select()
+                                                        ->from($connection->getTableName('eav_attribute'),'attribute_code')
+                                                        ->where('frontend_input NOT IN (?)',array('select','multiselect'))
+                                                        ->where('entity_type_id = ?', $productEntityTypeId)
+        )->fetchAll(null,0);
+
+
+        foreach($codesToExclude as $line) {
+            $except[] = $line['attribute_code'];
+        }
+
         foreach ($columns as $column) {
 
             if (in_array($column, $except)) {
@@ -424,6 +442,11 @@ class Import extends Factory
 
             $columnPrefix = explode('-', $column);
             $columnPrefix = reset($columnPrefix);
+
+            // Checking if the new generated columnPrefix is also part of the $except array
+            if (in_array($columnPrefix, $except)) {
+                continue;
+            }
 
             if ($connection->tableColumnExists($tmpTable, $column)) {
                 //get number of chars to remove from code in order to use the substring.
