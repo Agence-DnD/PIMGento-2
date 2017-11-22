@@ -5,10 +5,14 @@ namespace Pimgento\Product\Helper;
 use \Magento\Framework\App\Helper\AbstractHelper;
 use \Magento\Framework\App\Helper\Context;
 use \Magento\Store\Model\StoreManagerInterface;
-use \Magento\Framework\Filesystem;
+use \Pimgento\Staging\Helper\Config as StagingConfigHelper;
 
 class Config extends AbstractHelper
 {
+    /**
+     * Constants to configuration profile.
+     */
+    const CONFIG_PROFILE = 'product';
 
     /**
      * @var \Magento\Store\Model\StoreManagerInterface
@@ -16,15 +20,22 @@ class Config extends AbstractHelper
     protected $_storeManager;
 
     /**
+     * @var \Pimgento\Import\Helper\Config
+     */
+    protected $stagingConfigHelper;
+
+    /**
      * @param \Magento\Framework\App\Helper\Context $context
      * @param StoreManagerInterface $storeManager
      */
     public function __construct(
         Context $context,
-        StoreManagerInterface $storeManager
-    )
-    {
+        StoreManagerInterface $storeManager,
+        StagingConfigHelper $statingConfigHelper
+    ) {
         $this->_storeManager = $storeManager;
+        $this->stagingConfigHelper = $statingConfigHelper;
+
         parent::__construct($context);
     }
 
@@ -72,4 +83,24 @@ class Config extends AbstractHelper
         return $this->_storeManager->getStore()->getWebsiteId();
     }
 
+    /**
+     * Get import staging mode to use.
+     *
+     * @return mixed|string
+     */
+    public function getImportStagingMode()
+    {
+
+        return $this->stagingConfigHelper->getImportStagingMode(self::CONFIG_PROFILE);
+    }
+
+    /**
+     * Check if current configuration asks import to be in full staging mode or not.
+     *
+     * @return bool
+     */
+    public function isImportInFullStagingMode()
+    {
+        return $this->getImportStagingMode() == StagingConfigHelper::STAGING_MODE_FULL;
+    }
 }

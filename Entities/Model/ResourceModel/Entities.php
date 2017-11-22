@@ -375,7 +375,7 @@ class Entities extends AbstractDb
     public function setValues($tableName, $entityTable, $values, $entityTypeId, $storeId, $mode = 1)
     {
         $connection = $this->getConnection();
-        
+
         foreach ($values as $code => $value) {
             if (($attribute = $this->getAttribute($code, $entityTypeId))) {
                 if ($attribute['backend_type'] !== 'static') {
@@ -396,13 +396,13 @@ class Entities extends AbstractDb
                             array(
                                 'attribute_id'   => new Expr($attribute['attribute_id']),
                                 'store_id'       => new Expr($storeId),
-                                $identifier      => '_entity_id',
+                                $identifier      => '_' . $identifier,
                                 'value'          => $value,
                             )
                         );
 
                     if ($columnExists) {
-                        $select->where('`' . $columnName . '` <> ?', self::IGNORE_VALUE);
+                        $select->where('TRIM(`' . $columnName . '`) <> ?', self::IGNORE_VALUE);
                     }
 
                     $insert = $connection->insertFromSelect(
@@ -421,7 +421,9 @@ class Entities extends AbstractDb
                             'value = ?' => '0000-00-00 00:00:00'
                         );
                         $connection->update(
-                            $this->getTable($entityTable . '_' . $backendType), $values, $where
+                            $this->getTable($entityTable . '_' . $backendType),
+                            $values,
+                            $where
                         );
                     }
                 }
@@ -429,6 +431,53 @@ class Entities extends AbstractDb
         }
 
         return $this;
+    }
+
+    /**
+     * Update the values for an entity in all it's stages.
+     *
+     * @param $tableName
+     * @param $entityTable
+     * @param $entityTypeId
+     * @param $attributeCode
+     */
+    public function updateAllStageValues($tableName, $entityTable, $entityTypeId, $attributeCode, $joinCondition = 't._row_id != e.row_id')
+    {
+        $connection = $this->getConnection();
+
+        if (($attribute = $this->getAttribute($attributeCode, $entityTypeId))) {
+            if ($attribute['backend_type'] !== 'static') {
+                $backendType = $attribute['backend_type'];
+                $attributeTable = $connection->getTableName($entityTable . '_' . $backendType);
+
+                $select = $connection->select()
+                    ->from(
+                        ['e' =>$entityTable],
+                        []
+                    )->joinInner(
+                        ['t' => $tableName],
+                        "t._entity_id = e.entity_id AND $joinCondition",
+                        []
+                    )->joinInner(
+                        ['u' => $attributeTable],
+                        'u.row_id = t._row_id AND attribute_id = ' . $attribute['attribute_id'],
+                        []
+                    );
+
+                $select->columns(['u.attribute_id', 'u.store_id', 'e.row_id', 'u.value']);
+
+                $select->setPart('disable_staging_preview', true);
+
+                $insert = $connection->insertFromSelect(
+                    $select,
+                    $attributeTable,
+                    array('attribute_id', 'store_id', 'row_id', 'value'),
+                    1
+                );
+
+                $connection->query($insert);
+            }
+        }
     }
 
     /**

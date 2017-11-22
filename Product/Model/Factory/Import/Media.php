@@ -6,6 +6,7 @@ use \Pimgento\Import\Model\Factory;
 use \Pimgento\Entities\Model\Entities;
 use \Pimgento\Import\Helper\Config as helperConfig;
 use \Pimgento\Product\Helper\Media as mediaHelper;
+use \Pimgento\Staging\Helper\Config as StagingConfigHelper;
 use \Magento\Framework\Event\ManagerInterface;
 use \Magento\Framework\Module\Manager as moduleManager;
 use \Magento\Framework\App\Config\ScopeConfigInterface as scopeConfig;
@@ -33,6 +34,11 @@ class Media extends Factory
     protected $image;
 
     /**
+     * @var StagingConfigHelper
+     */
+    protected $stagingConfigHelper;
+
+    /**
      * PHP Constructor
      *
      * @param \Pimgento\Import\Helper\Config                     $helperConfig
@@ -52,6 +58,7 @@ class Media extends Factory
         Entities $entities,
         mediaHelper $mediaHelper,
         Image $image,
+        StagingConfigHelper $stagingConfigHelper,
         array $data = []
     ) {
         parent::__construct($helperConfig, $eventManager, $moduleManager, $scopeConfig, $data);
@@ -59,6 +66,7 @@ class Media extends Factory
         $this->_entities = $entities;
         $this->_mediaHelper = $mediaHelper;
         $this->image = $image;
+        $this->stagingConfigHelper = $stagingConfigHelper;
     }
 
     /**
@@ -98,6 +106,11 @@ class Media extends Factory
         $table->addColumn('media_cleaned', Table::TYPE_TEXT, 255, []);
         $table->addColumn('media_value', Table::TYPE_TEXT, 255, []);
         $table->addColumn('position', Table::TYPE_INTEGER, 10, ['unsigned' => true]);
+
+        if ($this->stagingConfigHelper->isCatalogStagingModulesEnabled()) {
+            $table->addColumn('row_id', \Magento\Framework\DB\Ddl\Table::TYPE_INTEGER, 10, ['unsigned' => true]);
+        }
+
         $table->addIndex(
             $tableMedia.'_entity_id',
             ['entity_id'],
@@ -164,23 +177,29 @@ class Media extends Factory
             $attributeId = 'NULL';
         }
 
+        $cols = [
+            'sku'            => 't.sku',
+            'entity_id'      => 't._entity_id',
+            'attribute_id'   => new Expr($attributeId),
+            'store_id'       => new Expr('0'),
+            'media_original' => "t.$column",
+            'position'       => new Expr($position)
+        ];
+
+        if ($this->stagingConfigHelper->isCatalogStagingModulesEnabled()) {
+            $cols['row_id'] = 't._row_id';
+        }
+
         $select = $connection->select()
             ->from(
                 ['t' => $tmpTable],
-                [
-                    'sku'            => 't.sku',
-                    'entity_id'      => 't._entity_id',
-                    'attribute_id'   => new Expr($attributeId),
-                    'store_id'       => new Expr('0'),
-                    'media_original' => "t.$column",
-                    'position'       => new Expr($position)
-                ]
+                $cols
             )->where("`t`.`$column` <> ''");
 
         $query = $connection->insertFromSelect(
             $select,
             $tableMedia,
-            ['sku', 'entity_id', 'attribute_id', 'store_id', 'media_original', 'position'],
+            array_keys($cols),
             AdapterInterface::INSERT_ON_DUPLICATE
         );
 
@@ -365,26 +384,31 @@ class Media extends Factory
         $step = 5000;
 
         // add the media in the varchar product table
+        $cols = [
+            'attribute_id' => 'attribute_id',
+            'store_id'     => 'store_id',
+            'value'        => 'media_value',
+        ];
+
+        if ($this->stagingConfigHelper->isCatalogStagingModulesEnabled()) {
+            $cols['row_id'] = 'row_id';
+            $identifier = 'row_id';
+        } else {
+            $cols['entity_id'] = 'entity_id';
+            $identifier = 'entity_id';
+        }
+
+        // add the media in the varchar product table
         $select = $connection->select()
             ->from(
                 ['t' => $tableMedia],
-                [
-                    'attribute_id' => 'attribute_id',
-                    'store_id'     => 'store_id',
-                    'entity_id'    => 'entity_id',
-                    'value'        => 'media_value',
-                ]
+                $cols
             )
             ->where('t.attribute_id is not null');
-
-        $identifier = $this->_entities->getColumnIdentifier(
-            $resource->getTable('catalog_product_entity_varchar')
-        );
-
         $query = $connection->insertFromSelect(
             $select,
             $resource->getTable('catalog_product_entity_varchar'),
-            ['attribute_id', 'store_id', $identifier, 'value'],
+            array_keys($cols),
             AdapterInterface::INSERT_ON_DUPLICATE
         );
         $connection->query($query);
@@ -448,8 +472,6 @@ class Media extends Factory
         // working on "media gallery value"
         $tableGallery = $resource->getTable('catalog_product_entity_media_gallery_value');
 
-        $identifier = $this->_entities->getColumnIdentifier($tableGallery);
-
         // get the record id from gallery value (for new medias)
         $maxId = $this->mediaGetMaxId($tableGallery, 'record_id');
         for ($k=1; $k<=$maxId; $k+= $step) {
@@ -474,7 +496,7 @@ class Media extends Factory
                 [
                     'value_id'  => 'value_id',
                     'store_id'  => new Expr('0'),
-                    $identifier => 'entity_id',
+                    $identifier => $identifier,
                     'label'     => new Expr("''"),
                     'position'  => 'position',
                 ]
@@ -500,7 +522,7 @@ class Media extends Factory
                 ['t' => $tableMedia],
                 [
                     'value_id'  => 'value_id',
-                    $identifier => 'entity_id',
+                    $identifier => $identifier,
                 ]
             );
         $query = $connection->insertFromSelect(

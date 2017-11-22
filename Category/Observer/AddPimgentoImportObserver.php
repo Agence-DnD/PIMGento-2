@@ -60,6 +60,10 @@ class AddPimgentoImportObserver extends AbstractAddImportObserver implements Obs
                 'method'  => 'createTable',
             ),
             array(
+                'comment' => __('Add product required data'),
+                'method'  => 'addRequiredData',
+            ),
+            array(
                 'comment' => __('Fill temporary table'),
                 'method'  => 'insertData',
             ),

@@ -151,7 +151,6 @@ class Related extends Factory
             );
         }
 
-        // Get the product ids for parents
         $query = $connection->select()
             ->from(false, ['parent_id' => 'p.' . $this->_entities->getColumnIdentifier($tableProduct)])
             ->joinLeft(
@@ -159,7 +158,6 @@ class Related extends Factory
                 'r.parent_sku = p.sku',
                 []
             );
-
         $connection->query(
             $connection->updateFromSelect($query, ['r' => $tableRelated])
         );

@@ -21,6 +21,11 @@
                     <backend_model>Magento\Config\Model\Config\Backend\Serialized\ArraySerialized</backend_model>
                     <comment>Fill configurable attributes with default value, leave blank to take simple product value or variant value if exists</comment>
                 </field>
+                <field id="staging_mode" translate="label" type="select" sortOrder="40" showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>Staging Mode</label>
+                    <source_model>Pimgento\Staging\Model\Source\StagingMode</source_model>
+                    <comment>In full mode the product import expects version_from, version_to columns</comment>
+                </field>
             </group>
             <group id="image" translate="label" type="text" sortOrder="120" showInDefault="1" showInWebsite="0" showInStore="0">
                 <label>Image</label>

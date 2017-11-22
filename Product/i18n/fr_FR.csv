@@ -43,3 +43,5 @@
 "Swatch image column code","Code de la colonne pour l'image Swatch"
 "Gallery image columns code","Code des colonnes pour l'image Gallery"
 "Move files","Déplacer les fichiers"
+"Staging Mode","Mode de Mise en scène"
+"In full mode the product import expects version_from, version_to columns","En mode complet l'import produit s'attend aux colonnes version_from, version_to"

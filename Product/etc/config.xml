@@ -5,6 +5,7 @@
             <product>
                 <attribute_mapping>a:1:{s:18:"_1459928423869_869";a:2:{s:13:"pim_attribute";s:11:"description";s:17:"magento_attribute";s:17:"short_description";}}</attribute_mapping>
                 <configurable_attributes>a:2:{s:18:"_1464857349718_718";a:2:{s:9:"attribute";s:11:"description";s:5:"value";s:0:"";}s:18:"_1464857373248_248";a:2:{s:9:"attribute";s:4:"name";s:5:"value";s:0:"";}}</configurable_attributes>
+                <staging_mode>simple</staging_mode>
             </product>
             <image>
                 <enabled>0</enabled>

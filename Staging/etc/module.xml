@@ -1,10 +1,9 @@
 <?xml version="1.0"?>
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Module/etc/module.xsd">
-    <module name="Pimgento_Category" setup_version="1.0.0">
+    <module name="Pimgento_Staging" setup_version="1.0.0">
         <sequence>
             <module name="Pimgento_Entities"/>
             <module name="Pimgento_Import"/>
-            <module name="Pimgento_Staging"/>
         </sequence>
     </module>
 </config>

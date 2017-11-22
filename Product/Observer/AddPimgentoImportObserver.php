@@ -68,6 +68,10 @@ class AddPimgentoImportObserver extends AbstractAddImportObserver implements Obs
                 'method'  => 'addRequiredData',
             ),
             array(
+                'comment' => __('Match code with Magento ID'),
+                'method'  => 'checkStageDates',
+            ),
+            array(
                 'comment' => __('Create configurable product'),
                 'method'  => 'createConfigurable',
             ),
@@ -121,6 +125,11 @@ class AddPimgentoImportObserver extends AbstractAddImportObserver implements Obs
             array(
                 'comment' => __('Import media files'),
                 'method'  => 'importMedia',
+            ),
+            /* Step that will work only if staging enabled & certain options are selected. */
+            array(
+                'comment' => __('Update stages'),
+                'method'  => 'updateAllStages',
             ),
         );
 

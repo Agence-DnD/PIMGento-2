@@ -183,7 +183,14 @@ class Entities extends AbstractModel implements EntitiesInterface, IdentityInter
     public function setValues($tableSuffix, $entityTable, $values, $entityTypeId, $storeId, $mode = 1)
     {
         $this->_getResource()
-            ->setValues($this->getTableName($tableSuffix), $entityTable, $values, $entityTypeId, $storeId, $mode);
+            ->setValues(
+                $this->getTableName($tableSuffix),
+                $entityTable,
+                $values,
+                $entityTypeId,
+                $storeId,
+                $mode
+            );
 
         return $this;
     }
