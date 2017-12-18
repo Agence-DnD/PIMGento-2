@@ -32,15 +32,16 @@ class Media extends AbstractHelper
     /**
      * PHP Constructor
      *
-     * @param Context             $context
-     * @param DirectoryList       $directoryList
+     * @param Context $context
+     * @param DirectoryList $directoryList
      * @param AttributeRepository $attributeRepository
      */
     public function __construct(
         Context $context,
         DirectoryList $directoryList,
         AttributeRepository $attributeRepository
-    ) {
+    )
+    {
 
         parent::__construct($context);
 
@@ -59,31 +60,7 @@ class Media extends AbstractHelper
     {
         $this->mediaPath = $this->directoryList->getPath('media') . '/catalog/product/';
 
-        $this->imageConfig = [
-            'fields' => [
-                'base_image' => [
-                    'columns'      => $this->getFieldDefinition('pimgento/image/base_image', false),
-                    'attribute_id' => $this->getAttributeIdByCode('image'),
-                ],
-                'small_image' => [
-                    'columns' => $this->getFieldDefinition('pimgento/image/small_image', false),
-                    'attribute_id' => $this->getAttributeIdByCode('small_image'),
-                ],
-                'thumbnail_image' => [
-                    'columns' => $this->getFieldDefinition('pimgento/image/thumbnail_image', false),
-                    'attribute_id' => $this->getAttributeIdByCode('thumbnail'),
-                ],
-                'swatch_image' => [
-                    'columns'      => $this->getFieldDefinition('pimgento/image/swatch_image', false),
-                    'attribute_id' => $this->getAttributeIdByCode('swatch_image'),
-                ],
-                'gallery' => [
-                    'columns'      => $this->getFieldDefinition('pimgento/image/gallery_image', true),
-                    'attribute_id' => null,
-                ],
-            ],
-            'clean_files'      => (((int) $this->scopeConfig->getValue('pimgento/image/clean_files')) == 1),
-        ];
+        $this->imageConfig = $this->getImageConfig();
 
         // clean up empty fields
         foreach ($this->imageConfig['fields'] as $field => $values) {
@@ -96,17 +73,54 @@ class Media extends AbstractHelper
         $importFolder = $currentImportFolder . '/';
         $value = trim($this->scopeConfig->getValue('pimgento/image/path'));
         if ($value) {
-            $importFolder.= $value.'/';
+            $importFolder .= $value . '/';
         }
         $this->imageConfig['import_folder'] = str_replace('//', '/', $importFolder);
 
-        $this->imageConfig['media_gallery_attribute_id'] = (int) $this->getAttributeIdByCode('media_gallery');
+        $this->imageConfig['media_gallery_attribute_id'] = (int)$this->getAttributeIdByCode('media_gallery');
+    }
+
+    /**
+     * get image configuration settings
+     *
+     * @return array
+     */
+    public function getImageConfig()
+    {
+        $imageConfig = [
+            'fields' => [
+                'base_image' => [
+                    'columns' => $this->getFieldDefinition('pimgento/image/base_image', false),
+                    'attribute_id' => $this->getAttributeIdByCode('image'),
+                ],
+                'small_image' => [
+                    'columns' => $this->getFieldDefinition('pimgento/image/small_image', false),
+                    'attribute_id' => $this->getAttributeIdByCode('small_image'),
+                ],
+                'thumbnail_image' => [
+                    'columns' => $this->getFieldDefinition('pimgento/image/thumbnail_image', false),
+                    'attribute_id' => $this->getAttributeIdByCode('thumbnail'),
+                ],
+                'swatch_image' => [
+                    'columns' => $this->getFieldDefinition('pimgento/image/swatch_image', false),
+                    'attribute_id' => $this->getAttributeIdByCode('swatch_image'),
+                ],
+                'gallery' => [
+                    'columns' => $this->getFieldDefinition('pimgento/image/gallery_image', true),
+                    'attribute_id' => null,
+                ],
+            ],
+            'clean_files' => (((int)$this->scopeConfig->getValue('pimgento/image/clean_files')) == 1),
+        ];
+
+        return $imageConfig;
+
     }
 
     /**
      * Get the field definition from the config
      *
-     * @param string  $path
+     * @param string $path
      * @param boolean $multipleValues
      *
      * @return string[]
@@ -137,7 +151,7 @@ class Media extends AbstractHelper
      */
     protected function getAttributeIdByCode($code)
     {
-        return (int) $this->attributeRepository
+        return (int)$this->attributeRepository
             ->get('catalog_product', $code)
             ->getAttributeId();
     }
