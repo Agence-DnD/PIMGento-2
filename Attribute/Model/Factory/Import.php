@@ -325,7 +325,7 @@ class Import extends Factory
                 $row['_entity_id'],
                 $data,
                 null,
-                0
+                $row['sort_order']
             );
 
             /* Add Attribute to group and family */
