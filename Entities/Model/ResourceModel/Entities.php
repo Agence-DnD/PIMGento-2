@@ -152,7 +152,7 @@ class Entities extends AbstractDb
             'Is New'
         );
 
-        $table->setOption('type', 'MYISAM');
+        $table->setOption('type', 'INNODB');
 
         $connection->createTable($table);
 
@@ -375,7 +375,7 @@ class Entities extends AbstractDb
     public function setValues($tableName, $entityTable, $values, $entityTypeId, $storeId, $mode = 1)
     {
         $connection = $this->getConnection();
-        
+
         foreach ($values as $code => $value) {
             if (($attribute = $this->getAttribute($code, $entityTypeId))) {
                 if ($attribute['backend_type'] !== 'static') {
