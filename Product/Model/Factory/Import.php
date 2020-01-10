@@ -519,8 +519,8 @@ class Import extends Factory
                     continue;
                 }
                 //in case of multiselect
-                $conditionJoin = "IF ( locate(',', `".$column."`) > 0 , ". "`p`.`".$column."` like ".
-                                 new Expr("CONCAT('%', `c1`.`code`, '%')") .", `p`.`".$column."` = `c1`.`code` )";
+                $conditionJoin = "IF ( locate(',', `".$column."`) > 0 , ".
+                                 new Expr("FIND_IN_SET(`c1`.`code`,`p`.`".$column."`)") .", `p`.`".$column."` = `c1`.`code` )";
 
                 $select = $connection->select()
                     ->from(
