@@ -471,7 +471,7 @@ class Entities extends AbstractDb
                 ->where('attribute_code = ?', $code)
                 ->limit(1)
         );
-        return count($attribute) ? $attribute : false;
+        return is_array($attribute) ? count($attribute) ? $attribute : false : false ;
     }
 
     /**
